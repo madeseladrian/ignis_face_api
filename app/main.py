@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.routers import face
 
 app = FastAPI(
   title="Ignis Face Api",
-  version='1.0.0'
+  version='1.1.0'
 )
 
 origins = ["*"]
@@ -15,6 +16,8 @@ app.add_middleware(
   allow_methods=["*"],
   allow_headers=["*"],
 )
+
+app.include_router(face.router)
 
 @app.get("/")
 def welcome():
