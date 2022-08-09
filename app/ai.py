@@ -132,3 +132,17 @@ def prediction_age(image):
 
   prediction_age = int(round(prediction_age.numpy()))
   return prediction_age
+
+def prediction_gender(image):
+  model = tf.keras.models.load_model('models/gender')
+  class_names = ['Female', 'Male']
+
+  image_resized = resize_face(image)
+  # img_array = tf.keras.utils.img_to_array(image)
+  img_array = tf.expand_dims(image_resized, 0)
+
+  predictions = model.predict(img_array)
+  predictions = tf.nn.sigmoid(predictions[0])
+  score = tf.where(predictions < 0.5, 0, 1)
+
+  return class_names[int(score)]

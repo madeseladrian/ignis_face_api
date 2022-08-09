@@ -4,7 +4,7 @@ from app.routers import face
 
 app = FastAPI(
   title="Ignis Face Api",
-  version='1.2.0'
+  version='1.3.0'
 )
 
 origins = ["*"]
