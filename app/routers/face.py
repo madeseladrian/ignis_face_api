@@ -31,3 +31,14 @@ def predict_gender(image: UploadFile):
       status_code=status.HTTP_404_NOT_FOUND, 
       detail=f"Not found face"
     )
+
+@router.post("/shape", status_code=status.HTTP_201_CREATED)
+def predict_shape(image: UploadFile):
+  try:
+    shape = ai.prediction_face_shape(image)
+    return shape
+  except:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND, 
+      detail=f"Not found face"
+    )

@@ -106,6 +106,27 @@ def resize_face(image: UploadFile):
       
   return face
 
+def resize_face_shape(image: UploadFile):
+  with mp_face_detection.FaceDetection(
+      min_detection_confidence=0.5) as face_detection:
+    
+    # Convert the uploaded image to np.ndarray
+    image = read_imagefile(image.file.read())   
+    results = face_detection.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+
+    for detection in results.detections:
+      margin = 0.15
+      rect_start_point, rect_end_point = draw_rectangle(image, detection)
+      correction = int(abs(rect_end_point[0] - rect_start_point[0]) * margin) 
+      x1 = rect_start_point[0] - correction
+      y1 = rect_start_point[1] - correction
+      x2 = rect_end_point[0] + correction
+      y2 = rect_end_point[1] + correction
+      face = image[y1:y2, x1:x2, :]
+      face = cv2.resize(face, (160, 160), interpolation=cv2.INTER_AREA)
+      
+  return face
+
 def prediction_age(image):
   model = tf.keras.models.load_model('models/age')
   class_names = [
@@ -146,3 +167,16 @@ def prediction_gender(image):
   score = tf.where(predictions < 0.5, 0, 1)
 
   return class_names[int(score)]
+
+def prediction_face_shape(image):
+  model = tf.keras.models.load_model('models/face_shape')
+  class_names = ['heart', 'oblong', 'oval', 'round', 'square']
+
+  image_resized = resize_face_shape(image)
+  # img_array = tf.keras.utils.img_to_array(image)
+  img_array = tf.expand_dims(image_resized, 0)
+
+  predictions = model.predict(img_array)
+  predictions = tf.nn.softmax(predictions[0])
+
+  return class_names[np.argmax(predictions)]
