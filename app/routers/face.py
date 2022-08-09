@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, UploadFile
-from app import ai
+import ai
 
 router = APIRouter(
   prefix="/face",
