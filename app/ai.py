@@ -86,3 +86,49 @@ def found_face(image):
       )
     
   return True
+
+def resize_face(image: UploadFile):
+  with mp_face_detection.FaceDetection(
+      min_detection_confidence=0.5) as face_detection:
+    
+    # Convert the uploaded image to np.ndarray
+    image = read_imagefile(image.file.read())   
+    results = face_detection.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+
+    for detection in results.detections:
+      rect_start_point, rect_end_point = draw_rectangle(image, detection)
+      x1 = rect_start_point[0]
+      y1 = rect_start_point[1]
+      x2 = rect_end_point[0]
+      y2 = rect_end_point[1]
+      face = image[y1:y2, x1:x2, :]
+      face = cv2.resize(face, (160, 160), interpolation=cv2.INTER_AREA)
+      
+  return face
+
+def prediction_age(image):
+  model = tf.keras.models.load_model('models/age')
+  class_names = [
+    '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', 
+    '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', 
+    '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', 
+    '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', 
+    '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', 
+    '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', 
+    '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', 
+    '8', '80', '9'
+  ]
+
+  image_resized = resize_face(image)
+  # img_array = tf.keras.utils.img_to_array(image_resized)
+  img_array = tf.expand_dims(image_resized, 0) # Create a batch
+
+  predictions = model.predict(img_array)
+  predictions = tf.nn.softmax(predictions[0])
+
+  prediction_age = 0
+  for i in range(len(predictions)):
+    prediction_age += predictions[i] * int(class_names[i])
+
+  prediction_age = int(round(prediction_age.numpy()))
+  return prediction_age
